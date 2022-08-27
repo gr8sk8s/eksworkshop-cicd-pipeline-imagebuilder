@@ -36,7 +36,6 @@ phases:
   post_build:
     commands:
       - docker images
-      - pwd
       - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > build.json
       - cat build.json
       
