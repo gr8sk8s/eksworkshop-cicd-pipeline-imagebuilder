@@ -30,9 +30,8 @@ phases:
       - cd $CODEBUILD_SRC_DIR/webapp
       - docker build --tag $REPOSITORY_URI:$TAG .
       - docker push $REPOSITORY_URI:$TAG
-      - cd $CODEBUILD_SRC_DIR
-      - pwd
-      - echo "$REPOSITORY_URI:$TAG" > ecr-image-tag.txt
+      - echo "$REPOSITORY_URI:$TAG" > $CODEBUILD_SRC_DIR/ecr-image-tag.txt
+      - cat $CODEBUILD_SRC_DIR/ecr-image-tag.txt
       
 artifacts:
-  files: ecr-image-tag.txt
+  files: $CODEBUILD_SRC_DIR/ecr-image-tag.txt
