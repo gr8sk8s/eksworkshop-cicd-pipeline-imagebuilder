@@ -8,27 +8,20 @@ phases:
       - which git && git --version
       - which aws && aws --version
       - which kubectl && kubectl version --client --short
-      - printenv
-      - pwd
       - aws secretsmanager get-secret-value --secret-id github/dev-key --output text --query SecretString > k
       - chmod 600 k 
       - eval "$(ssh-agent -s)"
       - ssh-add k
-      - ssh-add -L
       - rm k
-      - echo git clone git@github.com:$REPOSITORY_USERNAME/eksworkshop-cicd-pipeline-imagebuilder.git
       - git clone git@github.com:$REPOSITORY_USERNAME/eksworkshop-cicd-pipeline-imagebuilder.git
       - cd eksworkshop-cicd-pipeline-imagebuilder
-      - pwd      
+      - ls      
 
   pre_build:
       commands:
-        - pwd
         - TAG="$REPOSITORY_NAME-$REPOSITORY_BRANCH--$(date +%Y-%m-%d-%H-%M-%S)--$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
         - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
-        - cd webapp
-        - pwd
-        - ls
+        - cd $CODEBUILD_SRC_DIR/webapp
         - ./generate-dockerfile.sh
         - cat Dockerfile
         
@@ -41,7 +34,9 @@ phases:
   post_build:
     commands:
       - docker push $REPOSITORY_URI:$TAG
-      - printf '[{"name":"hello-k8s","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
+      - cd $CODEBUILD_SRC_DIR
+      - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > build.json
+      - cat build.json
       
 artifacts:
   files: build.json
