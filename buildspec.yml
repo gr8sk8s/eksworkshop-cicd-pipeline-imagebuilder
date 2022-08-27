@@ -32,6 +32,3 @@ phases:
       - docker push $REPOSITORY_URI:$TAG
       - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > $CODEBUILD_SRC_DIR/build.json
       - cat $CODEBUILD_SRC_DIR/build.json
-      
-artifacts:
-  files: build.json
