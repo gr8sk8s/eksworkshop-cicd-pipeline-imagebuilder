@@ -30,10 +30,13 @@ phases:
       - pwd
       - echo $REPOSITORY_URI:$TAG  
       - docker build --tag $REPOSITORY_URI:$TAG .
+      - docker images
 
   post_build:
     commands:
+      - pwd
       - docker push $REPOSITORY_URI:$TAG
+      - cd $CODEBUILD_SRC_DIR
       - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > $CODEBUILD_SRC_DIR/build.json
       - cat $CODEBUILD_SRC_DIR/build.json
 
