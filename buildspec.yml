@@ -34,9 +34,8 @@ phases:
   post_build:
     commands:
       - docker push $REPOSITORY_URI:$TAG
-      - cd $CODEBUILD_SRC_DIR
-      - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > build.json
-      - cat build.json
+      - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > $CODEBUILD_SRC_DIR/build.json
+      - cat $CODEBUILD_SRC_DIR/build.json
       
 artifacts:
-  files: build.json
+  files: $CODEBUILD_SRC_DIR/build.json
