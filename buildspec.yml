@@ -30,5 +30,3 @@ phases:
       - cd $CODEBUILD_SRC_DIR/webapp
       - docker build --tag $REPOSITORY_URI:$TAG .
       - docker push $REPOSITORY_URI:$TAG
-      - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > $CODEBUILD_SRC_DIR/build.json
-      - cat $CODEBUILD_SRC_DIR/build.json
