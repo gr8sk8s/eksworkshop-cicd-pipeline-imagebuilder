@@ -24,7 +24,7 @@ phases:
         - cd $CODEBUILD_SRC_DIR/webapp
         - ./generate-dockerfile.sh
         - cat Dockerfile
-        
+
   build:
     commands:
       - pwd
@@ -36,6 +36,6 @@ phases:
       - docker push $REPOSITORY_URI:$TAG
       - printf '[{"name": "hello-k8s", "imageUri": "%s"}]' $REPOSITORY_URI:$TAG > $CODEBUILD_SRC_DIR/build.json
       - cat $CODEBUILD_SRC_DIR/build.json
-      
+
 artifacts:
   files: $CODEBUILD_SRC_DIR/build.json
