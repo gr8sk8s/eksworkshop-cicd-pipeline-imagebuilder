@@ -4,34 +4,40 @@ phases:
 
   install:
     commands:
-      - which docker && docker --version
-      - which git && git --version
-      - which aws && aws --version
-      - which kubectl && kubectl version --client --short
-      - aws secretsmanager get-secret-value --secret-id github/dev-key --output text --query SecretString > k
-      - chmod 600 k 
-      - eval "$(ssh-agent -s)"
-      - ssh-add k
-      - rm k
-      - git clone git@github.com:$REPOSITORY_USERNAME/eksworkshop-cicd-pipeline-imagebuilder.git
-      - cd eksworkshop-cicd-pipeline-imagebuilder
-      - ls      
+      - |
+        docker --version
+        git --version
+        aws --version
+        kubectl version --client --short
+      - |
+        aws secretsmanager get-secret-value --secret-id github/dev-key --output text --query SecretString > k
+        chmod 600 k 
+        eval "$(ssh-agent -s)"
+        ssh-add k
+        rm k
+      - | 
+        git clone git@github.com:$REPOSITORY_USERNAME/eksworkshop-cicd-pipeline-imagebuilder.git
+        cd eksworkshop-cicd-pipeline-imagebuilder
+        ls      
 
   pre_build:
     commands:
       - TAG="$REPOSITORY_NAME-$REPOSITORY_BRANCH--$(date +%Y-%m-%d-%H-%M-%S)--$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
       - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
-      - cd $CODEBUILD_SRC_DIR/webapp
-      - ./generate-dockerfile.sh
-      - cat Dockerfile
+      - |
+        cd $CODEBUILD_SRC_DIR/webapp
+        ./generate-dockerfile.sh
+        cat Dockerfile
 
   build:
     commands:
       - cd $CODEBUILD_SRC_DIR/webapp
-      - docker build --tag $REPOSITORY_URI:$TAG .
-      - docker push $REPOSITORY_URI:$TAG
-      - echo "$REPOSITORY_URI:$TAG" > $CODEBUILD_SRC_DIR/ecr-image-tag.txt
-      - cat $CODEBUILD_SRC_DIR/ecr-image-tag.txt
+      - |
+        docker build --tag $REPOSITORY_URI:$TAG .
+        docker push $REPOSITORY_URI:$TAG
+      - |
+        echo "$REPOSITORY_URI:$TAG" > $CODEBUILD_SRC_DIR/ecr-image-tag.txt
+        cat $CODEBUILD_SRC_DIR/ecr-image-tag.txt
       
 artifacts:
   files: $CODEBUILD_SRC_DIR/ecr-image-tag.txt
