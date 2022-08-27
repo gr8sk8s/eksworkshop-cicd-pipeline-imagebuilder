@@ -30,3 +30,5 @@ phases:
       - cd $CODEBUILD_SRC_DIR/webapp
       - docker build --tag $REPOSITORY_URI:$TAG .
       - docker push $REPOSITORY_URI:$TAG
+      - cd $CODEBUILD_SRC_DIR
+      - pwd
