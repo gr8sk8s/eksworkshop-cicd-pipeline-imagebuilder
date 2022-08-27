@@ -11,7 +11,7 @@ phases:
 
   pre_build:
       commands:
-        - echo HOME is: $HOME
+        - echo HOME is $HOME
         - pwd
         - TAG="$REPOSITORY_NAME-$REPOSITORY_BRANCH--$(date +%Y-%m-%d-%H-%M-%S)--$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
         - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
@@ -31,7 +31,7 @@ phases:
     commands:
       - docker push $REPOSITORY_URI:$TAG
       - printf '[{"imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
-      - | 
+      - |
         pwd
         git clone git@github.com:$REPOSITORY_USERNAME/eksworkshop-cicd-pipeline-imagebuilder.git
         cd eksworkshop-cicd-pipeline-imagebuilder
