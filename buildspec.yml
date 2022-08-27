@@ -32,4 +32,7 @@ phases:
       - docker push $REPOSITORY_URI:$TAG
       - cd $CODEBUILD_SRC_DIR
       - pwd
-      - printf '{"name": "hello-k8s", "imageUri": "%s"}' "$REPOSITORY_URI:$TAG"
+      - echo "$REPOSITORY_URI:$TAG" > ecr-image-tag.txt
+      
+artifacts:
+  files: ecr-image-tag.txt
