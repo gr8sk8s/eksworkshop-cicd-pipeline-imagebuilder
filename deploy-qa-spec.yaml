@@ -34,7 +34,7 @@ phases:
       - $CODEBUILD_SRC_DIR/utils/replace_image.sh
       - cat $TARGET_FILE 
       - git add $TARGET_FILE
-      - SUFFIX=$CODEBUILD_SRC_DIR/utils/last_30.sh $TAG
+      - SUFFIX=$(CODEBUILD_SRC_DIR/utils/last_30.sh $TAG)
       - git commit -m"updated the image to $SUFFIX"
       - git push 
       - cd $CODEBUILD_SRC_DIR
@@ -42,7 +42,7 @@ phases:
       
   post_build:
     commands:      
-      - echo qa > qa.txt
+      - echo Successfully pushed new image tag $TAG for $$TARGET_FILE > qa.txt
       
 artifacts:
   files:
