@@ -11,4 +11,10 @@ phases:
       - echo Deploy started on `date`
       - echo Deploying to $ENV_NAME environment...
       - ls 
+      - cat ecr-image-tag.txt
+      - echo qa > qa.txt
+      
+artifacts:
+  files:
+    - '**/*'
 
