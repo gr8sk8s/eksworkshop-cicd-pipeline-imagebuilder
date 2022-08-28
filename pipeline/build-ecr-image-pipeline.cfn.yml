@@ -6,15 +6,8 @@ Description: Eks Workshop - CodePipeline with Codebuild of go webapp and push to
 
 Parameters:
 
-  EksClusterName:
-    Type: String
-    Description: The name of the EKS cluster created
-    MinLength: 1
-    MaxLength: 100
-    ConstraintDescription: You must enter the EKS cluster name
 
-  # TODO: Update this to final repo name
-  GitSourceRepo:
+  GitDevRepo:
     Type: String
     Description: GitHub source repository - must contain a Dockerfile and buildspec.yml in the base
     Default: eksworkshop-cicd-pipeline-imagebuilder
@@ -22,7 +15,7 @@ Parameters:
     MaxLength: 100
     ConstraintDescription: You must enter a GitHub repository name
 
-  GitBranch:
+  GitDevBranch:
     Type: String
     Default: main
     Description: GitHub git repository branch - change triggers a new build
@@ -30,6 +23,32 @@ Parameters:
     MaxLength: 100
     ConstraintDescription: You must enter a GitHub repository branch name
 
+  GitDeploymentRepo:
+    Type: String
+    Description: GitHub source repository - must contain a Dockerfile and buildspec.yml in the base
+    Default: eksworkshop-cicd-pipeline-k8sdeploy
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a GitHub repository name
+
+  GitQABranch:
+    Type: String
+    Default: qa
+    Description: GitHub branch for QA
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a GitHub repository branch name
+
+  GitPRODBranch:
+    Type: String
+    Default: main
+    Description: GitHub branch for PROD
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a GitHub repository branch name
+    
+
+  ## For now, to make it easier, just use the corporate Github dev token for all (Dev, QA, Prod)
   GitHubToken:
     Type: String
     NoEcho: true
@@ -53,13 +72,6 @@ Parameters:
     MaxLength: 100
     ConstraintDescription: You must enter a CodeBuild Docker image
 
-  KubectlRoleName:
-    Type: String
-    Default: EksWorkshopCodeBuildKubectlRole
-    Description: IAM role used by kubectl to interact with EKS cluster
-    MinLength: 3
-    MaxLength: 100
-    ConstraintDescription: You must enter a kubectl IAM role
 
 
 Metadata:
@@ -70,35 +82,23 @@ Metadata:
         Parameters:
           - GitHubUser
           - GitHubToken
-          - GitSourceRepo
-          - GitBranch
+          - GitDevRepo
+          - GitDevBranch
       - Label:
           default: CodeBuild
         Parameters:
           - CodeBuildDockerImage
-      - Label:
-          default: IAM
-        Parameters:
-          - KubectlRoleName
-      - Label:
-          default: EKS
-        Parameters:
-          - EksClusterName
     ParameterLabels:
       GitHubUser:
         default: Username
       GitHubToken:
         default: Access token
-      GitSourceRepo:
+      GitDevRepo:
         default: Repository
-      GitBranch:
+      GitDevBranch:
         default: Branch
       CodeBuildDockerImage:
         default: Docker image
-      KubectlRoleName:
-        default: kubectl IAM role
-      EksClusterName:
-        default: EKS cluster name
 
 
 Resources:
@@ -163,10 +163,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
-                Effect: Allow
-                Action:
-                  - sts:AssumeRole
               - Resource: '*'
                 Effect: Allow
                 Action:
@@ -231,18 +227,63 @@ Resources:
           - Name: REPOSITORY_URI
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrDockerRepository}
           - Name: REPOSITORY_NAME
-            Value: !Ref GitSourceRepo
+            Value: !Ref GitDevRepo
           - Name: REPOSITORY_USERNAME
             Value: !Ref GitHubUser
           - Name: REPOSITORY_BRANCH
-            Value: !Ref GitBranch
-          - Name: EKS_CLUSTER_NAME
-            Value: !Ref EksClusterName
-          - Name: EKS_KUBECTL_ROLE_ARN
-            Value: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
-      Name: !Ref AWS::StackName
+            Value: !Ref GitDevBranch
+      Name: !Sub '${AWS::StackName}-build'
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
 
+  CodeBuilProjectDeployQa:  
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Name: !Sub '${AWS::StackName}-deploy-qa'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: deploy-qa-spec.yaml
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref CodeBuildDockerImage
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: qa
+          - Name: REPOSITORY_USERNAME
+            Value: !Ref GitHubUser       
+          - Name: REPOSITORY_NAME
+            Value: !Ref GitDeploymentRepo
+          - Name: REPOSITORY_BRANCH
+            Value: !Ref GitQABranch            
+
+  CodeBuilProjectDeployProd:  
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Name: !Sub '${AWS::StackName}-deploy-prod'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: deploy-prod-spec.yaml
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref CodeBuildDockerImage
+        EnvironmentVariables:
+          - Name: ENV_NAME
+            Value: prod
+          - Name: REPOSITORY_USERNAME
+            Value: !Ref GitHubUser       
+          - Name: REPOSITORY_NAME
+            Value: !Ref GitDeploymentRepo
+          - Name: REPOSITORY_BRANCH
+            Value: !Ref GitPRODBranch      
+            
+            
   CodePipelineGitHub:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -261,8 +302,8 @@ Resources:
                 Provider: GitHub
               Configuration:
                 Owner: !Ref GitHubUser
-                Repo: !Ref GitSourceRepo
-                Branch: !Ref GitBranch
+                Repo: !Ref GitDevRepo
+                Branch: !Ref GitDevBranch
                 OAuthToken: !Ref GitHubToken
               OutputArtifacts:
                 - Name: App
@@ -282,4 +323,41 @@ Resources:
               OutputArtifacts:
                 - Name: BuildOutput
               RunOrder: 1
-    DependsOn: CodeBuildProject
+
+        - Name: Qa   
+          Actions:
+            - Name: Deploy
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref CodeBuilProjectDeployQa
+              InputArtifacts:
+                - Name: BuildOutput
+
+            - Name: Approval
+              RunOrder: 2
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: '1'
+              Configuration:
+                CustomData: Approve or Reject this change after running tests
+                
+        - Name: Prod   
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref CodeBuilProjectDeployProd
+              InputArtifacts:
+                - Name: BuildOutput
+              
