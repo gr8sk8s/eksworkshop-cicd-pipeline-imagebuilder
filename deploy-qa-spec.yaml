@@ -4,6 +4,7 @@ env:
   shell: bash
   variables:
     ENV_NAME: qa
+    TARGET_FILE: hello-k8s.yaml
 
 phases:
 
@@ -12,6 +13,8 @@ phases:
       - sed --version
       - TAG=$(cat ecr-image-tag.txt)
       - echo $TAG
+      - export TAG
+      - export TARGET_FILE
       - |
         aws secretsmanager get-secret-value --secret-id github/dev-key --output text --query SecretString > k
         chmod 600 k 
@@ -24,7 +27,7 @@ phases:
       - git clone git@github.com:$REPOSITORY_USERNAME/$REPOSITORY_NAME.git -b $REPOSITORY_BRANCH
       - cd $REPOSITORY_NAME 
       - git checkout hello-k8s.yml
-      - sed -i "s@image:.*@image: ${TAG}@g" hello-k8s.yml 
+      - $CODEBUILD_SRC_DIR/utils/replace_image.sh
       - cat hello-k8s.yml 
       - git add hello-k8s.yml && git commit -m"updated the image to $TAG" && git push 
       - cd $CODEBUILD_SRC_DIR
