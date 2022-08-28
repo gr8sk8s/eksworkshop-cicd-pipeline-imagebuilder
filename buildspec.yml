@@ -36,8 +36,10 @@ phases:
         docker build --tag $REPOSITORY_URI:$TAG .
         docker push $REPOSITORY_URI:$TAG
       - |
-        echo "$REPOSITORY_URI:$TAG" > $CODEBUILD_SRC_DIR/ecr-image-tag.txt
-        cat $CODEBUILD_SRC_DIR/ecr-image-tag.txt
+        cd $CODEBUILD_SRC_DIR
+        echo "$REPOSITORY_URI:$TAG" > ecr-image-tag.txt
+        cat ecr-image-tag.txt
+      
       
 artifacts:
-  files: $CODEBUILD_SRC_DIR/ecr-image-tag.txt
+  files: ecr-image-tag.txt
