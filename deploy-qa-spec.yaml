@@ -1,6 +1,7 @@
 version: 0.2
 
 env:
+  shell: bash
   variables:
     ENV_NAME: qa
 
@@ -8,6 +9,7 @@ phases:
 
   pre_build:
     commands:
+      - sed --version
       - TAG=$(cat ecr-image-tag.txt)
       - echo $TAG
       - |
@@ -16,7 +18,7 @@ phases:
         eval "$(ssh-agent -s)"
         ssh-add k
         rm k
-        
+
   build:
     commands:
       - | 

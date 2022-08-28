@@ -1,27 +1,14 @@
 ---
 version: 0.2
-phases:
 
-  install:
-    commands:
-      - |
-        docker --version
-        git --version
-        aws --version
-        kubectl version --client --short
-      - |
-        aws secretsmanager get-secret-value --secret-id github/dev-key --output text --query SecretString > k
-        chmod 600 k 
-        eval "$(ssh-agent -s)"
-        ssh-add k
-        rm k
-      - | 
-        git clone git@github.com:$REPOSITORY_USERNAME/eksworkshop-cicd-pipeline-imagebuilder.git
-        cd eksworkshop-cicd-pipeline-imagebuilder
-        ls      
+env:
+  shell: bash
+  
+phases:
 
   pre_build:
     commands:
+      - sed --version
       - TAG="$REPOSITORY_NAME-$REPOSITORY_BRANCH--$(date +%Y-%m-%d-%H-%M-%S)--$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
       - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
       - |
