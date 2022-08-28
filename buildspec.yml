@@ -40,6 +40,6 @@ phases:
         echo "$REPOSITORY_URI:$TAG" > ecr-image-tag.txt
         cat ecr-image-tag.txt
       
-      
 artifacts:
-  files: ecr-image-tag.txt
+  files:
+    - '**/*'
