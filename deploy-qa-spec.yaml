@@ -27,6 +27,7 @@ phases:
       - git clone git@github.com:$REPOSITORY_USERNAME/$REPOSITORY_NAME.git -b $REPOSITORY_BRANCH
       - cd $REPOSITORY_NAME 
       - pwd
+      - export TARGET_FILE_PATH=$CODEBUILD_SRC_DIR/$REPOSITORY_NAME/$TARGET_FILE
       - ls
       - git checkout hello-k8s.yml
       - cat hello-k8s.yml 
