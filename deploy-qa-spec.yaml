@@ -24,7 +24,7 @@ phases:
       - git clone git@github.com:$REPOSITORY_USERNAME/$REPOSITORY_NAME.git -b $REPOSITORY_BRANCH
       - cd $REPOSITORY_NAME 
       - git checkout hello-k8s.yml
-      - sed -i "s@image:.*$@image: ${TAG}@g" hello-k8s.yml 
+      - sed -i "s@image:.*@image: ${TAG}@g" hello-k8s.yml 
       - cat hello-k8s.yml 
       - git add hello-k8s.yml && git commit -m"updated the image to $TAG" && git push 
       - cd $CODEBUILD_SRC_DIR
