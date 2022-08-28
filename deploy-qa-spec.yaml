@@ -26,7 +26,7 @@ phases:
       - git checkout hello-k8s.yml
       - sed --version
       - echo $TAG
-      - sed -i 's/image:.*$/image: '${TAG}'/g' hello-k8s.yml 
+      - sed -i "s|image:.*$|image: ${TAG}|g" hello-k8s.yml 
       - git add hello-k8s.yml && git commit -m"updated the image to $TAG" && git push 
       - cd $CODEBUILD_SRC_DIR
  
