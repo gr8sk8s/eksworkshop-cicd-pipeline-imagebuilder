@@ -28,7 +28,8 @@ phases:
       - cd $REPOSITORY_NAME 
       - pwd
       - ls
-      - git config --global user.name "QA deployer for $TARGET_FILE"
+      - git config --global user.name "QA deployer"
+      - git config --global user.email "QA@famouscompany.com"
       - git checkout $TARGET_FILE
       - cat $TARGET_FILE 
       - cat $CODEBUILD_SRC_DIR/utils/replace_image.sh
