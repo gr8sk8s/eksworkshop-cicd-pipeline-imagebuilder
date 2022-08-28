@@ -27,14 +27,15 @@ phases:
       - git clone git@github.com:$REPOSITORY_USERNAME/$REPOSITORY_NAME.git -b $REPOSITORY_BRANCH
       - cd $REPOSITORY_NAME 
       - pwd
-      - export TARGET_FILE_PATH=$CODEBUILD_SRC_DIR/$REPOSITORY_NAME/$TARGET_FILE
       - ls
       - git checkout $TARGET_FILE
       - cat $TARGET_FILE 
       - cat $CODEBUILD_SRC_DIR/utils/replace_image.sh
       - $CODEBUILD_SRC_DIR/utils/replace_image.sh
       - cat $TARGET_FILE 
-      - git add $TARGET_FILE && git commit -m"updated the image to $TAG" && git push 
+      - git add $TARGET_FILE
+      - git commit -m"updated the image to ${TAG: 30}"
+      - git push 
       - cd $CODEBUILD_SRC_DIR
  
       
