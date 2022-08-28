@@ -4,7 +4,7 @@ env:
   shell: bash
   variables:
     ENV_NAME: qa
-    TARGET_FILE: $TARGET_FILE
+    TARGET_FILE: hello-ks.yml
 
 phases:
 
